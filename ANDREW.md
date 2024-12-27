@@ -7,48 +7,65 @@ For the current setup of running on sequential data.
 
 
 1. I want to run eval on all 5 data mixtures at every epoch.
-2. I want to pre-make the data mixtures for all 5 datasets. The mixture is a constant amount of data that have different weights for each dataset. The weights are a dirichlet distribution.
+2. I want to pre-make the data mixtures for all 5 datasets. The mixture is a constant amount of data that have different weights for each dataset. The weights are drawn from a dirichlet distribution. e.g. if i want to run 100 experiments, i want to make 100 mixtures of data for all 5 datasets.
 
+Let's break this down into manageable steps:
 
+### Phase 1: Multi-Dataset Evaluation
+1. **Modify SingleRunner to support multi-dataset evaluation**
+   - Add a method to load test loaders for multiple datasets
+   - Create a method to run evaluation on all datasets
+   - Modify logging to track per-dataset metrics
 
-Based on the code and your goal from ANDREW.md to "test how data mixture affects the performance of the model on all the downstream tasks in the evals", here are some key things to consider:
+2. **Update argument parsing**
+   - Add arguments for eval datasets
+   - Add arguments for eval paths
+   - Add arguments for logging multi-dataset results
 
-1. Data Mixture Creation:
-- You'll need to implement a way to create data mixtures with different weights following a Dirichlet distribution
-- This should be done for all 5 datasets (Beauty, CDs, Clothing, Electronics and Movies)
-- The total amount of data should remain constant across different mixtures
+3. **Implement logging structure**
+   - Create a consistent format for multi-dataset results
+   - Set up proper file paths for each dataset's results
 
-2. Evaluation Pipeline:
-- The current code has evaluation capabilities through SingleRunner and DistributedRunner
-- You'll need to modify the training/evaluation loop to:
-  - Run evaluations on all 5 datasets at every epoch
-  - Track performance metrics across different data mixtures
+### Phase 2: Data Mixture Training
+1. **Create Mixture Generator**
+   - Implement Dirichlet sampling
+   - Create data sampling based on weights
+   - Save mixture configurations for reproducibility
 
-3. Configuration:
-- Add new command line arguments or config options for:
-  - Dirichlet distribution parameters
-  - Data mixture ratios
-  - Total data amount to use
-  - Which datasets to include in mixtures
+2. **Data Loading Pipeline**
+   - Create mixture dataset class
+   - Implement weighted sampling
+   - Handle different dataset sizes
 
-4. Logging:
-- Set up logging to track:
-  - Data mixture ratios used
-  - Performance metrics for each dataset
-  - Cross-dataset performance comparisons
+3. **Training Loop**
+   - Modify training to use mixture data
+   - Track per-dataset performance during training
+   - Save mixture-specific checkpoints
 
-5. Analysis Tools:
-- Create scripts to:
-  - Visualize how different mixture ratios affect performance
-  - Compare performance across datasets
-  - Analyze any transfer effects between datasets
+Let's start with Phase 1. Here's the detailed implementation plan for Step 1:
 
-Key Implementation Steps:
-1. Create a data mixture generator class/function
-2. Modify the data loading pipeline to handle mixtures
-3. Extend the evaluation pipeline to test on all datasets
-4. Add configuration options for mixture experiments
-5. Set up comprehensive logging
-6. Create analysis tools
+1. **Modify SingleRunner**:
+```python
+class SingleRunner:
+    def __init__(self, model, tokenizer, train_loader, valid_loader, device, args):
+        # Existing init code...
+        self.eval_datasets = args.eval_datasets.split(',')
+        self.test_loaders = self.get_all_test_loaders()
+    
+    def get_all_test_loaders(self):
+        """Load test loaders for all evaluation datasets"""
+        test_loaders = {}
+        for dataset in self.eval_datasets:
+            test_loaders[dataset] = self.get_test_loader(dataset)
+        return test_loaders
+    
+    def evaluate_all_datasets(self):
+        """Run evaluation on all datasets"""
+        results = {}
+        for dataset, loader in self.test_loaders.items():
+            logging.info(f"Evaluating on {dataset}")
+            results[dataset] = self.test_dataset_task(loader)
+        return results
+```
 
-Would you like me to help you implement any of these specific components?
+Would you like me to continue with the implementation details for any of these steps?

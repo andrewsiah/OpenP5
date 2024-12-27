@@ -43,7 +43,7 @@ The statistics of the selected ten datasets can be found below:
 
 ## Usage
 
-Download the data from [Google Drive link](https://drive.google.com/drive/folders/1W5i5ryetj_gkcOpG1aZfL5Y8Yk6RxwYE?usp=sharing), and put them into `./data` folder.
+Download the data from [Google Drive link](https://drive.google.com/drive/folders/1W5i5ryetj_gkcOpG1aZfL5Y8Yk6RxwYE?usp=sharing), and put them into `/shared/share_mala/andrew/OpenP5/data/` folder.
 
 Run the following command to generate all data
 

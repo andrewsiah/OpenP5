@@ -24,7 +24,7 @@ def parse_args(parser):
     parser.add_argument('--logging_level', type=int, default=logging.INFO,help='Logging Level, 0, 10, ..., 50')
     
     # arguments related to dataset
-    parser.add_argument("--data_path", type=str, default='../../data', help="data directory")
+    parser.add_argument("--data_path", type=str, default='/shared/share_mala/andrew/OpenP5/data', help="data directory")
     parser.add_argument("--item_indexing", type=str, default='sequential', help="item indexing method, including random, sequential and collaborative")
     parser.add_argument("--tasks", type=str, default='sequential,straightforward', help="Downstream tasks, separate by comma")
     parser.add_argument("--datasets", type=str, default='Beauty', help="Dataset names, separate by comma")

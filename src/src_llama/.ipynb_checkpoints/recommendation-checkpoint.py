@@ -35,7 +35,7 @@ def main():
     parser.add_argument("--backbone", type=str, default='t5-small', help='backbone model name')
     parser.add_argument("--lora", type=int, default=0, help='whether user lora.')
     # arguments related to dataset
-    parser.add_argument("--data_path", type=str, default='../data', help="data directory")
+    parser.add_argument("--data_path", type=str, default='/shared/share_mala/andrew/OpenP5/data', help="data directory")
     parser.add_argument("--item_indexing", type=str, default='sequential', help="item indexing method, including random, sequential and collaborative")
     parser.add_argument("--tasks", type=str, default='sequential,straightforward', help="Downstream tasks, separate by comma")
     parser.add_argument("--dataset", type=str, default='Beauty', help="Dataset names, separate by comma")

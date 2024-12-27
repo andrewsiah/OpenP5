@@ -23,6 +23,7 @@ def main(args):
     file_data['data'] = []
     
     user_sequence = utils.ReadLineFromFile(os.path.join(args.data_path, args.dataset, 'user_sequence.txt'))
+
     user_sequence_dict = indexing.construct_user_sequence_dict(user_sequence)
     
     if args.item_indexing == 'sequential':
@@ -138,7 +139,7 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='OpenP5Dataset')
     
     # arguments related to dataset
-    parser.add_argument("--data_path", type=str, default='../data', help="data directory")
+    parser.add_argument("--data_path", type=str, default='/shared/share_mala/andrew/OpenP5/data', help="data directory")
     parser.add_argument("--item_indexing", type=str, default='sequential', help="item indexing method, including random, sequential and collaborative")
     parser.add_argument("--tasks", type=str, default='sequential,straightforward', help="Downstream tasks, separate by comma")
     parser.add_argument("--dataset", type=str, default='Beauty', help="Dataset name")
