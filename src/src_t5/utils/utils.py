@@ -44,6 +44,10 @@ def save_pickle(data, filename):
         
         
 def ReadLineFromFile(path):
+    print(f"Attempting to read file: {path}")
+    print(f"Current working directory: {os.getcwd()}")
+    print(f"Absolute path: {os.path.abspath(path)}")
+    
     if not os.path.exists(path):
         raise FileNotFoundError
     lines = []
@@ -75,32 +79,93 @@ def get_init_paras_dict(class_name, paras_dict):
         out_dict[para] = paras_dict[para]
     return out_dict
 
-def setup_logging(args):
-    args.log_name = log_name(args)
-    if len(args.datasets.split(',')) > 1:
-        folder_name = 'SP5'
-    else:
-        folder_name = args.datasets
-    folder = os.path.join(args.log_dir, folder_name)
-    if not os.path.exists(folder):
-        os.makedirs(folder)
-    log_file = os.path.join(args.log_dir, folder_name, args.log_name + '.log')
+
+# def setup_logging(args):
+#     args.log_name = log_name(args)
+#     if len(args.datasets.split(',')) > 1:
+#         folder_name = 'SP5'
+#     else:
+#         folder_name = args.datasets
+#     folder = os.path.join(args.log_dir, folder_name)
+#     if not os.path.exists(folder):
+#         print(f"Attempting to create directory: {folder}")  # Add this line
+#         os.makedirs(folder, exist_ok=True)  # Add exist_ok=True
+#         # os.makedirs(folder)
+#     log_file = os.path.join(args.log_dir, folder_name, args.log_name + '.log')
     
-    for handler in logging.root.handlers[:]:
-        logging.root.removeHandler(handler)
-    logging.basicConfig(filename=log_file, level=args.logging_level, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
-    logging.getLogger().addHandler(logging.StreamHandler(sys.stdout))
+#     for handler in logging.root.handlers[:]:
+#         logging.root.removeHandler(handler)
+#     logging.basicConfig(filename=log_file, level=args.logging_level, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+#     logging.getLogger().addHandler(logging.StreamHandler(sys.stdout))
     
-    return
+#     return
     
+
+# def log_name(args):
+#     if len(args.datasets.split(',')) > 1:
+#         folder_name = 'SP5'
+#     else:
+#         folder_name = args.datasets
+#     params = [str(args.distributed), str(args.sample_prompt), str(args.his_prefix), str(args.skip_empty_his), str(args.max_his), str(args.master_port), folder_name, args.tasks, args.backbone, args.item_indexing, str(args.lr), str(args.epochs), str(args.batch_size), args.sample_num, args.prompt_file[3:-4]]
+#     return '_'.join(params)
 
 def log_name(args):
     if len(args.datasets.split(',')) > 1:
         folder_name = 'SP5'
     else:
         folder_name = args.datasets
-    params = [str(args.distributed), str(args.sample_prompt), str(args.his_prefix), str(args.skip_empty_his), str(args.max_his), str(args.master_port), folder_name, args.tasks, args.backbone, args.item_indexing, str(args.lr), str(args.epochs), str(args.batch_size), args.sample_num, args.prompt_file[3:-4]]
+    
+    # Remove path components from prompt_file, keep only filename without extension
+    prompt_basename = os.path.basename(args.prompt_file)[:-4]  # removes '.txt'
+    
+    params = [
+        str(args.distributed), 
+        str(args.sample_prompt), 
+        str(args.his_prefix), 
+        str(args.skip_empty_his), 
+        str(args.max_his), 
+        str(args.master_port), 
+        folder_name, 
+        args.tasks, 
+        args.backbone, 
+        args.item_indexing, 
+        str(args.lr), 
+        str(args.epochs), 
+        str(args.batch_size), 
+        args.sample_num, 
+        prompt_basename
+    ]
     return '_'.join(params)
+
+
+def setup_logging(args):
+    args.log_name = log_name(args)
+    if len(args.datasets.split(',')) > 1:
+        folder_name = 'SP5'
+    else:
+        folder_name = args.datasets
+        
+    # Create full path for log directory
+    folder = os.path.join(args.log_dir, folder_name)
+    
+    # Create directory if it doesn't exist
+    if not os.path.exists(folder):
+        print(f"Attempting to create directory: {folder}")
+        os.makedirs(folder, exist_ok=True)
+    
+    log_file = os.path.join(folder, args.log_name + '.log')
+    
+    # Setup logging
+    for handler in logging.root.handlers[:]:
+        logging.root.removeHandler(handler)
+    logging.basicConfig(
+        filename=log_file, 
+        level=args.logging_level, 
+        format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+    )
+    logging.getLogger().addHandler(logging.StreamHandler(sys.stdout))
+    
+    return
 
 def setup_model_path(args):
     if len(args.datasets.split(',')) > 1:

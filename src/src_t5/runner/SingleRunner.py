@@ -172,7 +172,6 @@ class SingleRunner:
                 torch.save(self.model.module.state_dict(), self.args.model_path)
                 logging.info(f"Save the current model to {self.args.model_path}")
                 
-            
         return
     
     def create_optimizer_and_scheduler(self):
@@ -234,6 +233,8 @@ class SingleRunner:
                 
         
     def test(self, path=None):
+        print("Starting evaluation...") 
+        logging.info("\nSTARTING EVALUATION")
         self.model.eval()
         if path:
             self.model.load_state_dict(torch.load(path, map_location=self.device))
@@ -246,6 +247,7 @@ class SingleRunner:
                     self.test_dataset_task_filtered(loader)
             else:
                 self.test_dataset_task(loader)
+        logging.info("EVALUATION COMPLETE\n")
             
             
     def test_dataset_task_filtered_batch(self, testloader):
@@ -373,7 +375,8 @@ class SingleRunner:
                 logging.info(f'{self.metrics[i]}: {metrics_res[i]}')
 
     def test_dataset_task(self, testloader):
-        logging.info(f'testing {testloader.dataset.dataset} dataset on {testloader.dataset.task} task')
+        logging.info("="*50)
+        logging.info(f'EVALUATION: {testloader.dataset.dataset} dataset on {testloader.dataset.task} task')
         test_total = 0
         with torch.no_grad():
             candidates = testloader.dataset.all_items

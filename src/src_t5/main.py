@@ -21,8 +21,13 @@ from torch.nn.parallel import DistributedDataParallel as DDP
 import pdb
 
 
+# def get_dataset(args):
 def get_dataset(args):
+    # Fix the data path to always point to OpenP5/data
+    root_dir = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+    args.data_path = os.path.join(root_dir, 'data')
     
+    # Rest of your get_dataset code...
     
     # init dataset
     datasets = args.datasets.split(',')
@@ -112,7 +117,7 @@ def single_main():
     
     if args.random_initialize == 1:
         logging.info("Random initialize number related tokens")
-        initialization.random_initialization(model, tokenizer)
+        initialization.random_initialization(model, tokenizer, args.backbone)
     
     if args.load:
         logging.info(f"Load model from {args.model_path}")
@@ -195,7 +200,7 @@ def distributed_main(local_rank, args):
     if args.random_initialize == 1:
         if local_rank == 0:
             logging.info("Random initialize number related tokens")
-        initialization.random_initialization(model, tokenizer)
+        initialization.random_initialization(model, tokenizer, args.backbone)
     
     if args.load:
         if local_rank == 0:
