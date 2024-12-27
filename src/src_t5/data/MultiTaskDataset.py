@@ -1,3 +1,29 @@
+"""
+MultiTaskDataset: A PyTorch Dataset class for handling multi-task recommendation data.
+
+This class implements a dataset that can handle multiple recommendation tasks like sequential, direct, and straightforward recommendations.
+It supports different item indexing methods (sequential, random, collaborative) and handles both training and validation data.
+
+Key Features:
+- Supports distributed training
+- Handles multiple recommendation tasks
+- Configurable item indexing methods
+- Customizable prompt templates
+- History sequence management
+- Flexible data sampling strategies
+
+Main Components:
+1. Argument Parsing: Handles all dataset-related command line arguments
+2. Data Loading: Loads and processes user sequence data
+3. Item Indexing: Implements different indexing strategies (sequential, random, collaborative)
+4. Prompt Management: Handles prompt templates and sampling
+5. Data Construction: Builds input-output pairs for training/validation
+
+Usage:
+    dataset = MultiTaskDataset(args, dataset_name, mode)
+    dataloader = DataLoader(dataset, batch_size=32)
+"""
+
 import random
 import argparse
 import os
@@ -53,6 +79,14 @@ class MultiTaskDataset(Dataset):
         return parser
         
     def __init__(self, args, dataset, mode):
+        """
+        Initialize the MultiTaskDataset.
+
+        Args:
+            args: Parsed command line arguments
+            dataset: Name of the dataset to use
+            mode: 'train' or 'validation'
+        """
         super().__init__()
         self.data_path = args.data_path
         self.dataset = dataset
@@ -187,6 +221,12 @@ class MultiTaskDataset(Dataset):
         return positive
     
     def shuffle(self, seed):
+        """
+        Shuffle the task data using a given random seed.
+        
+        Args:
+            seed: Random seed for shuffling
+        """
         g = torch.Generator()
         g.manual_seed(seed)
         
@@ -231,7 +271,10 @@ class MultiTaskDataset(Dataset):
     
     def load_train(self):
         """
-        Load training data samples
+        Load training data samples by processing user sequences.
+        
+        Returns:
+            list: List of dictionaries containing training samples with dataset, user_id, target, and history
         """
         data_samples = []
         for user in self.reindex_user_seq_dict:
@@ -260,7 +303,10 @@ class MultiTaskDataset(Dataset):
     
     def load_validation(self):
         """
-        Load validation data samples
+        Load validation data samples by processing user sequences.
+        
+        Returns:
+            list: List of dictionaries containing validation samples with dataset, user_id, target, and history
         """
         data_samples = []
         for user in self.reindex_user_seq_dict:
@@ -285,10 +331,15 @@ class MultiTaskDataset(Dataset):
     
         
     def __len__(self):
+        """Returns the total number of samples in the dataset"""
         return len(self.data['input'])
     
     
     def construct_sentence(self):
+        """
+        Construct input-output pairs based on the mode and sampling settings.
+        Handles both training and validation data construction.
+        """
         if self.mode == 'train':
             if self.args.sample_prompt == 0:
                 self._construct_sentence_all()
@@ -306,6 +357,7 @@ class MultiTaskDataset(Dataset):
                 logging.info(f"Input: {self.data['input'][101]} , Output: {self.data['output'][101]} ")
     
     def _construct_sentence_valid(self):
+        """Construct sentences for validation using a single prompt"""
         self.data = {}
         self.data['input'] = []
         self.data['output'] = []
@@ -317,6 +369,7 @@ class MultiTaskDataset(Dataset):
                 self.data['output'].append(self.prompt[task][setting[0]][setting[1]]['Output'].format(**datapoint))
     
     def _construct_sentence_all(self):
+        """Construct sentences using all available prompts"""
         self.data = {}
         self.data['input'] = []
         self.data['output'] = []
@@ -328,6 +381,7 @@ class MultiTaskDataset(Dataset):
                     self.data['output'].append(self.prompt[task]['seen'][pid]['Output'].format(**datapoint))
                     
     def _construct_sentence_sample(self):
+        """Construct sentences using randomly sampled prompts"""
         self.data = {}
         self.data['input'] = []
         self.data['output'] = []
@@ -342,11 +396,14 @@ class MultiTaskDataset(Dataset):
         
     
     def __getitem__(self, idx):
-        # data_id, prompt = self.identify_prompt(idx)
-        # datapoint = self.data_samples[data_id]
+        """
+        Get a single sample from the dataset.
         
-        # return {'input': prompt['Input'].format(**datapoint),
-        #        'output': prompt['Output'].format(**datapoint)}
-        
+        Args:
+            idx: Index of the sample to retrieve
+            
+        Returns:
+            dict: Dictionary containing input and output text pairs
+        """
         return {'input': self.data['input'][idx],
                'output': self.data['output'][idx]}

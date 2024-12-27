@@ -1,0 +1,93 @@
+2024-12-27 07:42:10,525 - root - INFO - {'seed': 2023, 'model_dir': '../model', 'checkpoint_dir': '../checkpoint', 'model_name': 'model.pt', 'log_dir': '../log', 'distributed': 0, 'gpu': '0', 'master_addr': 'localhost', 'master_port': '2000', 'logging_level': 20, 'data_path': '/shared/share_mala/andrew/OpenP5/data', 'item_indexing': 'sequential', 'tasks': 'sequential,straightforward', 'datasets': 'Beauty', 'prompt_file': '../../prompt.txt', 'sequential_order': 'original', 'collaborative_token_size': 200, 'collaborative_cluster': 20, 'collaborative_last_token': 'sequential', 'collaborative_float32': 0, 'max_his': 20, 'his_prefix': 1, 'his_sep': ' , ', 'skip_empty_his': 1, 'valid_prompt': 'seen:0', 'valid_prompt_sample': 1, 'valid_sample_num': '3,3', 'test_prompt': 'seen:0', 'sample_prompt': 1, 'sample_num': '3,3', 'batch_size': 64, 'eval_batch_size': 1, 'dist_sampler': 0, 'optim': 'AdamW', 'epochs': 20, 'lr': 0.001, 'clip': 1, 'logging_step': 100, 'warmup_prop': 0.05, 'gradient_accumulation_steps': 1, 'weight_decay': 0.01, 'adam_eps': 1e-06, 'dropout': 0.1, 'alpha': 2, 'train': 1, 'backbone': 't5-small', 'metrics': 'hit@5,hit@10,ndcg@5,ndcg@10', 'load': 0, 'random_initialize': 1, 'test_epoch': 1, 'valid_select': 0, 'test_before_train': 1, 'test_filtered': 0, 'test_filtered_batch': 1, 'log_name': '0_1_1_1_20_2000_Beauty_sequential,straightforward_t5-small_sequential_0.001_20_64_3,3_prompt', 'model_path': '../model/Beauty/0_1_1_1_20_2000_Beauty_sequential,straightforward_t5-small_sequential_0.001_20_64_3,3_prompt.pt', 'rank': 0}
+2024-12-27 07:42:11,083 - root - INFO - Generating data for Beauty dataset
+2024-12-27 07:42:11,084 - root - INFO - Get prompt template from ../../prompt.txt
+2024-12-27 07:42:11,085 - root - INFO - Considering {dataset} user_{user_id} has interacted with {dataset} items {history} . What is the next recommendation for the user ?
+2024-12-27 07:42:11,086 - root - INFO - Required info: ['history', 'user_id', 'dataset', 'target']
+2024-12-27 07:44:55,049 - root - INFO - {'seed': 2023, 'model_dir': '../model', 'checkpoint_dir': '../checkpoint', 'model_name': 'model.pt', 'log_dir': '../log', 'distributed': 0, 'gpu': '0', 'master_addr': 'localhost', 'master_port': '2000', 'logging_level': 20, 'data_path': '/shared/share_mala/andrew/OpenP5/data', 'item_indexing': 'sequential', 'tasks': 'sequential,straightforward', 'datasets': 'Beauty', 'prompt_file': '../../prompt.txt', 'sequential_order': 'original', 'collaborative_token_size': 200, 'collaborative_cluster': 20, 'collaborative_last_token': 'sequential', 'collaborative_float32': 0, 'max_his': 20, 'his_prefix': 1, 'his_sep': ' , ', 'skip_empty_his': 1, 'valid_prompt': 'seen:0', 'valid_prompt_sample': 1, 'valid_sample_num': '3,3', 'test_prompt': 'seen:0', 'sample_prompt': 1, 'sample_num': '3,3', 'batch_size': 64, 'eval_batch_size': 1, 'dist_sampler': 0, 'optim': 'AdamW', 'epochs': 20, 'lr': 0.001, 'clip': 1, 'logging_step': 100, 'warmup_prop': 0.05, 'gradient_accumulation_steps': 1, 'weight_decay': 0.01, 'adam_eps': 1e-06, 'dropout': 0.1, 'alpha': 2, 'train': 1, 'backbone': 't5-small', 'metrics': 'hit@5,hit@10,ndcg@5,ndcg@10', 'load': 0, 'random_initialize': 1, 'test_epoch': 1, 'valid_select': 0, 'test_before_train': 1, 'test_filtered': 0, 'test_filtered_batch': 1, 'log_name': '0_1_1_1_20_2000_Beauty_sequential,straightforward_t5-small_sequential_0.001_20_64_3,3_prompt', 'model_path': '../model/Beauty/0_1_1_1_20_2000_Beauty_sequential,straightforward_t5-small_sequential_0.001_20_64_3,3_prompt.pt', 'rank': 0}
+2024-12-27 07:44:55,154 - root - INFO - Generating data for Beauty dataset
+2024-12-27 07:44:55,155 - root - INFO - Get prompt template from ../../prompt.txt
+2024-12-27 07:44:55,156 - root - INFO - Considering {dataset} user_{user_id} has interacted with {dataset} items {history} . What is the next recommendation for the user ?
+2024-12-27 07:44:55,157 - root - INFO - Required info: ['dataset', 'history', 'user_id', 'target']
+2024-12-27 07:44:55,321 - root - INFO - Reindex data with sequential indexing method
+2024-12-27 07:44:55,403 - root - INFO - loading training data
+2024-12-27 07:44:55,717 - root - INFO - Getting prompt information
+2024-12-27 07:44:58,870 - root - INFO - Input: Here is the purchase history of Beauty user_6 : Beauty item item_1026 , item_1027 , item_1028 , item_1009 , item_1029 , item_1030 , item_1031 , item_1032 , item_1033 , item_1034 , item_1035 , item_1036 , item_1037 . I wonder what is the next recommended item for the user . , Output: Beauty item_1038 
+2024-12-27 07:44:58,921 - root - INFO - Use t5-small backbone model
+2024-12-27 07:45:01,741 - root - INFO - Random initialize number related tokens
+2024-12-27 07:45:03,316 - root - INFO - Building Optimizer and Scheduler
+2024-12-27 07:45:03,316 - root - INFO - Batch per epoch: 12320
+2024-12-27 07:45:03,316 - root - INFO - Total steps: 246400
+2024-12-27 07:45:03,317 - root - INFO - Warmup proportion: 0.05
+2024-12-27 07:45:03,317 - root - INFO - Warm up steps: 12320
+2024-12-27 07:45:03,318 - root - INFO - Building Optimizer AdamW
+2024-12-27 07:45:04,985 - root - INFO - Start training
+2024-12-27 07:45:04,986 - root - INFO - 
+STARTING EVALUATION
+2024-12-27 07:45:04,988 - root - INFO - ==================================================
+2024-12-27 07:45:04,989 - root - INFO - EVALUATION: Beauty dataset on sequential task
+2024-12-27 07:47:03,241 - root - INFO - {'seed': 2023, 'model_dir': '../model', 'checkpoint_dir': '../checkpoint', 'model_name': 'model.pt', 'log_dir': '../log', 'distributed': 0, 'gpu': '0', 'master_addr': 'localhost', 'master_port': '2000', 'logging_level': 20, 'data_path': '/shared/share_mala/andrew/OpenP5/data', 'item_indexing': 'sequential', 'tasks': 'sequential,straightforward', 'datasets': 'Beauty', 'prompt_file': '../../prompt.txt', 'sequential_order': 'original', 'collaborative_token_size': 200, 'collaborative_cluster': 20, 'collaborative_last_token': 'sequential', 'collaborative_float32': 0, 'max_his': 20, 'his_prefix': 1, 'his_sep': ' , ', 'skip_empty_his': 1, 'valid_prompt': 'seen:0', 'valid_prompt_sample': 1, 'valid_sample_num': '3,3', 'test_prompt': 'seen:0', 'sample_prompt': 1, 'sample_num': '3,3', 'batch_size': 64, 'eval_batch_size': 1, 'dist_sampler': 0, 'optim': 'AdamW', 'epochs': 20, 'lr': 0.001, 'clip': 1, 'logging_step': 100, 'warmup_prop': 0.05, 'gradient_accumulation_steps': 1, 'weight_decay': 0.01, 'adam_eps': 1e-06, 'dropout': 0.1, 'alpha': 2, 'train': 1, 'backbone': 't5-small', 'metrics': 'hit@5,hit@10,ndcg@5,ndcg@10', 'load': 0, 'random_initialize': 1, 'test_epoch': 1, 'valid_select': 0, 'test_before_train': 1, 'test_filtered': 0, 'test_filtered_batch': 1, 'log_name': '0_1_1_1_20_2000_Beauty_sequential,straightforward_t5-small_sequential_0.001_20_64_3,3_prompt', 'model_path': '../model/Beauty/0_1_1_1_20_2000_Beauty_sequential,straightforward_t5-small_sequential_0.001_20_64_3,3_prompt.pt', 'rank': 0}
+2024-12-27 07:47:03,341 - root - INFO - Generating data for Beauty dataset
+2024-12-27 07:47:03,342 - root - INFO - Get prompt template from ../../prompt.txt
+2024-12-27 07:47:03,343 - root - INFO - Considering {dataset} user_{user_id} has interacted with {dataset} items {history} . What is the next recommendation for the user ?
+2024-12-27 07:47:03,343 - root - INFO - Required info: ['dataset', 'target', 'user_id', 'history']
+2024-12-27 07:47:03,480 - root - INFO - Reindex data with sequential indexing method
+2024-12-27 07:47:03,543 - root - INFO - loading training data
+2024-12-27 07:47:03,763 - root - INFO - Getting prompt information
+2024-12-27 07:47:05,962 - root - INFO - Input: Here is the purchase history of Beauty user_6 : Beauty item item_1026 , item_1027 , item_1028 , item_1009 , item_1029 , item_1030 , item_1031 , item_1032 , item_1033 , item_1034 , item_1035 , item_1036 , item_1037 . I wonder what is the next recommended item for the user . , Output: Beauty item_1038 
+2024-12-27 07:47:06,002 - root - INFO - Use t5-small backbone model
+2024-12-27 07:47:08,093 - root - INFO - Random initialize number related tokens
+2024-12-27 07:47:11,223 - root - INFO - Building Optimizer and Scheduler
+2024-12-27 07:47:11,224 - root - INFO - Batch per epoch: 12320
+2024-12-27 07:47:11,224 - root - INFO - Total steps: 246400
+2024-12-27 07:47:11,224 - root - INFO - Warmup proportion: 0.05
+2024-12-27 07:47:11,224 - root - INFO - Warm up steps: 12320
+2024-12-27 07:47:11,225 - root - INFO - Building Optimizer AdamW
+2024-12-27 07:47:12,668 - root - INFO - Start training
+2024-12-27 07:47:12,669 - root - INFO - 
+STARTING EVALUATION
+2024-12-27 07:47:12,671 - root - INFO - ==================================================
+2024-12-27 07:47:12,671 - root - INFO - EVALUATION: Beauty dataset on sequential task
+2024-12-27 07:48:46,540 - root - INFO - {'seed': 2023, 'model_dir': '../model', 'checkpoint_dir': '../checkpoint', 'model_name': 'model.pt', 'log_dir': '../log', 'distributed': 0, 'gpu': '0', 'master_addr': 'localhost', 'master_port': '2000', 'logging_level': 20, 'data_path': '/shared/share_mala/andrew/OpenP5/data', 'item_indexing': 'sequential', 'tasks': 'sequential,straightforward', 'datasets': 'Beauty', 'prompt_file': '../../prompt.txt', 'sequential_order': 'original', 'collaborative_token_size': 200, 'collaborative_cluster': 20, 'collaborative_last_token': 'sequential', 'collaborative_float32': 0, 'max_his': 20, 'his_prefix': 1, 'his_sep': ' , ', 'skip_empty_his': 1, 'valid_prompt': 'seen:0', 'valid_prompt_sample': 1, 'valid_sample_num': '3,3', 'test_prompt': 'seen:0', 'sample_prompt': 1, 'sample_num': '3,3', 'batch_size': 64, 'eval_batch_size': 1, 'dist_sampler': 0, 'optim': 'AdamW', 'epochs': 20, 'lr': 0.001, 'clip': 1, 'logging_step': 100, 'warmup_prop': 0.05, 'gradient_accumulation_steps': 1, 'weight_decay': 0.01, 'adam_eps': 1e-06, 'dropout': 0.1, 'alpha': 2, 'train': 1, 'backbone': 't5-small', 'metrics': 'hit@5,hit@10,ndcg@5,ndcg@10', 'load': 0, 'random_initialize': 1, 'test_epoch': 1, 'valid_select': 0, 'test_before_train': 1, 'test_filtered': 0, 'test_filtered_batch': 1, 'log_name': '0_1_1_1_20_2000_Beauty_sequential,straightforward_t5-small_sequential_0.001_20_64_3,3_prompt', 'model_path': '../model/Beauty/0_1_1_1_20_2000_Beauty_sequential,straightforward_t5-small_sequential_0.001_20_64_3,3_prompt.pt', 'rank': 0}
+2024-12-27 07:48:46,765 - root - INFO - Generating data for Beauty dataset
+2024-12-27 07:48:46,765 - root - INFO - Get prompt template from ../../prompt.txt
+2024-12-27 07:48:46,766 - root - INFO - Considering {dataset} user_{user_id} has interacted with {dataset} items {history} . What is the next recommendation for the user ?
+2024-12-27 07:48:46,767 - root - INFO - Required info: ['target', 'history', 'dataset', 'user_id']
+2024-12-27 07:48:47,148 - root - INFO - Reindex data with sequential indexing method
+2024-12-27 07:48:47,256 - root - INFO - loading training data
+2024-12-27 07:48:47,726 - root - INFO - Getting prompt information
+2024-12-27 07:48:50,164 - root - INFO - Input: Here is the purchase history of Beauty user_6 : Beauty item item_1026 , item_1027 , item_1028 , item_1009 , item_1029 , item_1030 , item_1031 , item_1032 , item_1033 , item_1034 , item_1035 , item_1036 , item_1037 . I wonder what is the next recommended item for the user . , Output: Beauty item_1038 
+2024-12-27 07:48:50,224 - root - INFO - Use t5-small backbone model
+2024-12-27 07:48:52,385 - root - INFO - Random initialize number related tokens
+2024-12-27 07:48:53,923 - root - INFO - Building Optimizer and Scheduler
+2024-12-27 07:48:53,923 - root - INFO - Batch per epoch: 12320
+2024-12-27 07:48:53,923 - root - INFO - Total steps: 246400
+2024-12-27 07:48:53,923 - root - INFO - Warmup proportion: 0.05
+2024-12-27 07:48:53,923 - root - INFO - Warm up steps: 12320
+2024-12-27 07:48:53,926 - root - INFO - Building Optimizer AdamW
+2024-12-27 07:48:55,410 - root - INFO - Start training
+2024-12-27 07:48:55,411 - root - INFO - 
+STARTING EVALUATION
+2024-12-27 07:48:55,413 - root - INFO - ==================================================
+2024-12-27 07:48:55,413 - root - INFO - EVALUATION: Beauty dataset on sequential task
+2024-12-27 07:49:15,031 - root - INFO - {'seed': 2023, 'model_dir': '../model', 'checkpoint_dir': '../checkpoint', 'model_name': 'model.pt', 'log_dir': '../log', 'distributed': 0, 'gpu': '0', 'master_addr': 'localhost', 'master_port': '2000', 'logging_level': 20, 'data_path': '/shared/share_mala/andrew/OpenP5/data', 'item_indexing': 'sequential', 'tasks': 'sequential,straightforward', 'datasets': 'Beauty', 'prompt_file': '../../prompt.txt', 'sequential_order': 'original', 'collaborative_token_size': 200, 'collaborative_cluster': 20, 'collaborative_last_token': 'sequential', 'collaborative_float32': 0, 'max_his': 20, 'his_prefix': 1, 'his_sep': ' , ', 'skip_empty_his': 1, 'valid_prompt': 'seen:0', 'valid_prompt_sample': 1, 'valid_sample_num': '3,3', 'test_prompt': 'seen:0', 'sample_prompt': 1, 'sample_num': '3,3', 'batch_size': 64, 'eval_batch_size': 1, 'dist_sampler': 0, 'optim': 'AdamW', 'epochs': 20, 'lr': 0.001, 'clip': 1, 'logging_step': 100, 'warmup_prop': 0.05, 'gradient_accumulation_steps': 1, 'weight_decay': 0.01, 'adam_eps': 1e-06, 'dropout': 0.1, 'alpha': 2, 'train': 1, 'backbone': 't5-small', 'metrics': 'hit@5,hit@10,ndcg@5,ndcg@10', 'load': 0, 'random_initialize': 1, 'test_epoch': 1, 'valid_select': 0, 'test_before_train': 1, 'test_filtered': 0, 'test_filtered_batch': 1, 'log_name': '0_1_1_1_20_2000_Beauty_sequential,straightforward_t5-small_sequential_0.001_20_64_3,3_prompt', 'model_path': '../model/Beauty/0_1_1_1_20_2000_Beauty_sequential,straightforward_t5-small_sequential_0.001_20_64_3,3_prompt.pt', 'rank': 0}
+2024-12-27 07:49:15,128 - root - INFO - Generating data for Beauty dataset
+2024-12-27 07:49:15,128 - root - INFO - Get prompt template from ../../prompt.txt
+2024-12-27 07:49:15,129 - root - INFO - Considering {dataset} user_{user_id} has interacted with {dataset} items {history} . What is the next recommendation for the user ?
+2024-12-27 07:49:15,130 - root - INFO - Required info: ['dataset', 'target', 'history', 'user_id']
+2024-12-27 07:49:15,275 - root - INFO - Reindex data with sequential indexing method
+2024-12-27 07:49:15,338 - root - INFO - loading training data
+2024-12-27 07:49:15,558 - root - INFO - Getting prompt information
+2024-12-27 07:49:17,795 - root - INFO - Input: Here is the purchase history of Beauty user_6 : Beauty item item_1026 , item_1027 , item_1028 , item_1009 , item_1029 , item_1030 , item_1031 , item_1032 , item_1033 , item_1034 , item_1035 , item_1036 , item_1037 . I wonder what is the next recommended item for the user . , Output: Beauty item_1038 
+2024-12-27 07:49:17,835 - root - INFO - Use t5-small backbone model
+2024-12-27 07:49:19,691 - root - INFO - Random initialize number related tokens
+2024-12-27 07:49:23,340 - root - INFO - Building Optimizer and Scheduler
+2024-12-27 07:49:23,341 - root - INFO - Batch per epoch: 12320
+2024-12-27 07:49:23,341 - root - INFO - Total steps: 246400
+2024-12-27 07:49:23,341 - root - INFO - Warmup proportion: 0.05
+2024-12-27 07:49:23,342 - root - INFO - Warm up steps: 12320
+2024-12-27 07:49:23,345 - root - INFO - Building Optimizer AdamW
+2024-12-27 07:49:24,785 - root - INFO - Start training
+2024-12-27 07:49:24,787 - root - INFO - 
+STARTING EVALUATION
+2024-12-27 07:49:24,789 - root - INFO - ==================================================
+2024-12-27 07:49:24,789 - root - INFO - EVALUATION: Beauty dataset on sequential task

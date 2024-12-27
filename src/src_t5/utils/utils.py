@@ -14,7 +14,7 @@ def parse_global_args(parser):
     parser.add_argument("--model_dir", type=str, default='../model', help='The model directory')
     parser.add_argument("--checkpoint_dir", type=str, default='../checkpoint', help='The checkpoint directory')
     parser.add_argument("--model_name", type=str, default='model.pt', help='The model name')
-    parser.add_argument("--log_dir", type=str, default='../log', help='The log directory')
+    parser.add_argument("--log_dir", type=str, default='/shared/share_mala/andrew/OpenP5/logs', help='The log directory')
     parser.add_argument("--distributed", type=int, default=1, help='use distributed data parallel or not.')
     parser.add_argument("--gpu", type=str, default='0,1,2,3', help='gpu ids, if not distributed, only use the first one.')
     parser.add_argument("--master_addr", type=str, default='localhost', help='Setup MASTER_ADDR for os.environ')
