@@ -1,9 +1,14 @@
 import numpy as np
 import math
 import random
+import time
+import logging
 
 
 def rel_results_filtered(user_positive, id2user, user_idx, return_num, predictions, targets, scores, k):
+    """Calculate filtered relevance results."""
+    start_time = time.time()
+    
     results = []
     batch_length = len(targets)
     for b in range(batch_length):
@@ -32,9 +37,17 @@ def rel_results_filtered(user_positive, id2user, user_idx, return_num, predictio
                 continue
         
         results.append(one_results)
+
+    process_time = time.time() - start_time
+    if process_time > 0.1:  # Only log if processing takes significant time
+        logging.debug(f"rel_results_filtered processing time: {process_time:.3f}s for batch_size={batch_length}")
+    
     return results
 
 def rel_results(predictions, targets, scores, k):
+    """Calculate relevance results between generated and gold sentences."""
+    start_time = time.time()
+    
     results = []
     batch_length = len(targets)
     for b in range(batch_length):
@@ -55,17 +68,33 @@ def rel_results(predictions, targets, scores, k):
                 one_results.append(0)
         
         results.append(one_results)
+    
+    process_time = time.time() - start_time
+    if process_time > 0.1:  # Only log if processing takes significant time
+        logging.debug(f"rel_results processing time: {process_time:.3f}s for batch_size={batch_length}")
+    
     return results
 
 def get_metrics_results(rel_results, metrics):
+    """Calculate metric scores from relevance results."""
+    start_time = time.time()
+    
     res = []
     for m in metrics:
+        metric_start = time.time()
         if m.lower().startswith('hit'):
             k = int(m.split('@')[1])
             res.append(hit_at_k(rel_results, k))
         elif m.lower().startswith('ndcg'):
             k = int(m.split('@')[1])
             res.append(ndcg_at_k(rel_results, k))
+        metric_time = time.time() - metric_start
+        if metric_time > 0.05:  # Log individual metric timing if significant
+            logging.debug(f"Metric {m} calculation time: {metric_time:.3f}s")
+    
+    process_time = time.time() - start_time
+    if process_time > 0.1:  # Only log if total processing takes significant time
+        logging.debug(f"get_metrics_results total processing time: {process_time:.3f}s")
     
     return np.array(res)
 

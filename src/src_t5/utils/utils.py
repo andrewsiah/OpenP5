@@ -7,6 +7,7 @@ import logging
 import sys
 import random
 import torch
+import json
 
 
 def parse_global_args(parser):
@@ -192,3 +193,27 @@ def load_model(model, path, args, loc=None):
     state_dict = torch.load(path, map_location=loc)
     model.load_state_dict(state_dict, strict=False)
     return model
+
+def save_eval_results(results, path):
+    """
+    Save evaluation results to a JSON file.
+    
+    Args:
+        results: Dictionary containing evaluation results
+        path: Path to save results file
+    """
+    with open(path, 'w') as f:
+        json.dump(results, f, indent=2)
+
+def load_eval_results(path):
+    """
+    Load evaluation results from a JSON file.
+    
+    Args:
+        path: Path to results file
+        
+    Returns:
+        dict: Loaded results
+    """
+    with open(path) as f:
+        return json.load(f)

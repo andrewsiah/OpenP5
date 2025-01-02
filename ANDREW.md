@@ -25,6 +25,7 @@ Let's break this down into manageable steps:
    - Create a consistent format for multi-dataset results
    - Set up proper file paths for each dataset's results
 
+
 ### Phase 2: Data Mixture Training
 1. **Create Mixture Generator**
    - Implement Dirichlet sampling
@@ -40,3 +41,29 @@ Let's break this down into manageable steps:
    - Modify training to use mixture data
    - Track per-dataset performance during training
    - Save mixture-specific checkpoints
+
+TODOS:
+1. Mixture Generator.
+   - Implement Dirichlet sampling
+   - Create data sampling based on weights
+   - Save mixture configurations for reproducibility
+
+2. Index Offsetter
+
+Issues: the eval dataset index is already made, so if we do any reindexing, we'll have to reindex the eval dataset as well. 
+unless we have a "mixture_reindex_function" that takes in an old index and gives a new index. 
+for a given mixture, we reindex from old_index to new_index, then whenever we use any index, we just plug in this middle layer.
+
+We can add an offset, e.g. for Datasets CDs, Beauty, Clothing, Electronics, Movies, we can add an offset of 100000, 200000, 300000, 400000, 500000 respectively. 
+
+So we just maintain an offset json file, e.g. 
+{
+   "CDs": 100000,
+   "Beauty": 200000,
+   "Clothing": 300000,
+   "Electronics": 400000,
+   "Movies": 500000
+}
+
+Then when we load in dataset in MultiTaskDataset, we can just offset based on the dataset name.
+

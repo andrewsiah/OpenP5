@@ -12,6 +12,10 @@ import pdb
 import numpy as np
 import utils.evaluate as evaluate
 import torch.distributed as dist
+from collections import defaultdict
+import json
+import wandb
+import os
 
 class SingleRunner:
     def parse_runner_args(parser):
@@ -45,6 +49,30 @@ class SingleRunner:
         parser.add_argument("--test_before_train", type=int, default=1, help='whether test before training')
         parser.add_argument("--test_filtered", type=int, default=0, help='whether filter out the items in the training data.')
         parser.add_argument("--test_filtered_batch", type=int, default=1, help='whether testing with filtered data in batch.')
+        parser.add_argument(
+            "--eval_datasets",
+            type=str,
+            default=None,
+            help="Comma-separated list of datasets to evaluate on. If not specified, uses training datasets"
+        )
+        parser.add_argument(
+            "--use_wandb",
+            type=int,
+            default=0,
+            help="Whether to use Weights & Biases logging"
+        )
+        parser.add_argument(
+            "--wandb_project",
+            type=str,
+            default="OpenP5",
+            help="Weights & Biases project name"
+        )
+        parser.add_argument(
+            "--wandb_name",
+            type=str,
+            default=None,
+            help="Weights & Biases run name. If None, will use model path basename"
+        )
         
         return parser
     
@@ -250,21 +278,40 @@ class SingleRunner:
     def get_testloader(self):
         """
         Create test data loaders for each dataset and task combination.
+        Supports loading multiple evaluation datasets.
         """
         self.testloaders = []
-        datasets = self.args.datasets.split(',')
+        
+        # Get all datasets to evaluate on
+        if hasattr(self.args, 'eval_datasets'):
+            eval_datasets = self.args.eval_datasets.split(',')
+        else:
+            # Fallback to training datasets if eval_datasets not specified
+            eval_datasets = self.args.datasets.split(',')
+        
+        # Get all tasks to evaluate
         tasks = self.args.tasks.split(',')
+        
         if self.test_filtered > 0:
             collator = TestCollator(self.tokenizer)
         else:
             collator = Collator(self.tokenizer)
-        for dataset in datasets:
-            for task in tasks:
-                testdata = TestDataset(self.args, dataset, task)
-                testloader = DataLoader(dataset=testdata, batch_size=self.args.eval_batch_size, collate_fn=collator, shuffle=False)
-                self.testloaders.append(testloader)
-                
         
+        logging.info(f"Setting up evaluation for datasets: {eval_datasets}")
+        logging.info(f"Tasks to evaluate: {tasks}")
+        
+        for dataset in eval_datasets:
+            for task in tasks:
+                logging.info(f"Creating test loader for {dataset} - {task}")
+                testdata = TestDataset(self.args, dataset, task)
+                testloader = DataLoader(
+                    dataset=testdata,
+                    batch_size=self.args.eval_batch_size,
+                    collate_fn=collator,
+                    shuffle=False
+                )
+                self.testloaders.append(testloader)
+    
     def test(self, path=None):
         """
         Run evaluation on test datasets.
@@ -272,25 +319,80 @@ class SingleRunner:
         Args:
             path: Optional path to load model weights from
         """
-        # TODO: Add Wandb logging here?
         print("Starting evaluation...") 
         logging.info("\nSTARTING EVALUATION")
         self.model.eval()
         if path:
             self.model.load_state_dict(torch.load(path, map_location=self.device))
+
+        # Create dict to store results for each dataset/task
+        all_results = defaultdict(dict)
+        
+        # Initialize wandb if requested
+        if self.args.use_wandb:
+            if not wandb.run:
+                name = self.args.wandb_name or os.path.basename(self.args.model_path)
+                wandb.init(
+                    project=self.args.wandb_project,
+                    name=name,
+                    config=vars(self.args)
+                )
+        
         for loader in self.testloaders:
+            dataset_name = loader.dataset.dataset
+            task_name = loader.dataset.task
+            
             if self.test_filtered > 0:
                 if self.test_filtered_batch > 0:
-                    self.test_dataset_task_filtered_batch(loader)
+                    metrics = self.test_dataset_task_filtered_batch(loader, return_metrics=True)
                 else:
                     assert self.args.eval_batch_size == 1
-                    self.test_dataset_task_filtered(loader)
+                    metrics = self.test_dataset_task_filtered(loader, return_metrics=True)
             else:
-                self.test_dataset_task(loader)
+                metrics = self.test_dataset_task(loader, return_metrics=True)
+                
+            # Store results
+            metric_dict = {
+                metric: float(value) for metric, value in zip(self.metrics, metrics)
+            }
+            all_results[dataset_name][task_name] = metric_dict
+            
+            # Log to wandb
+            if self.args.use_wandb:
+                wandb_metrics = {
+                    f"{dataset_name}/{task_name}/{metric}": value 
+                    for metric, value in metric_dict.items()
+                }
+                wandb.log(wandb_metrics)
+
+        # Log all results
+        logging.info("\nEVALUATION RESULTS:")
+        logging.info(json.dumps(all_results, indent=2))
+        
+        # Save results to file
+        results_path = self.args.model_path.replace('.pt', '_results.json')
+        with open(results_path, 'w') as f:
+            json.dump(all_results, f, indent=2)
+        logging.info(f"\nSaved detailed results to {results_path}")
+        
+        # Log summary metrics to wandb
+        if self.args.use_wandb:
+            # Calculate average metrics across datasets
+            avg_metrics = defaultdict(list)
+            for dataset_results in all_results.values():
+                for task_results in dataset_results.values():
+                    for metric, value in task_results.items():
+                        avg_metrics[metric].append(value)
+            
+            wandb.log({
+                f"avg_{metric}": np.mean(values)
+                for metric, values in avg_metrics.items()
+            })
+        
         logging.info("EVALUATION COMPLETE\n")
-            
-            
-    def test_dataset_task_filtered_batch(self, testloader):
+        return all_results
+    
+    def test_dataset_task_filtered_batch(self, testloader, return_metrics=False):
         """
         Run filtered batch evaluation on a test dataset. This method evaluates the model's ability to predict items 
         while filtering out items that appear in the user's training history.
@@ -303,7 +405,13 @@ class SingleRunner:
         Args:
             testloader: DataLoader containing test data with user histories and ground truth items
         """
-        logging.info(f'testing filtered {testloader.dataset.dataset} dataset on {testloader.dataset.task} task')
+        dataset_name = testloader.dataset.dataset
+        task_name = testloader.dataset.task
+        logging.info(f'testing filtered {dataset_name} dataset on {task_name} task')
+        
+        # Start timing
+        start_time = time.time()
+        
         test_total = 0
         with torch.no_grad():
             candidates = testloader.dataset.all_items
@@ -359,10 +467,23 @@ class SingleRunner:
             
             metrics_res /= test_total
             
+            # Calculate elapsed time
+            elapsed_time = time.time() - start_time
+            logging.info(f'Evaluation time for {dataset_name}/{task_name}: {elapsed_time:.2f} seconds')
+            
+            # Log timing to wandb
+            if self.args.use_wandb:
+                wandb.log({
+                    f"{dataset_name}/{task_name}/eval_time": elapsed_time
+                })
+            
             for i in range(len(self.metrics)):
                 logging.info(f'{self.metrics[i]}: {metrics_res[i]}')
                 
-    def test_dataset_task_filtered(self, testloader):
+            if return_metrics:
+                return metrics_res
+    
+    def test_dataset_task_filtered(self, testloader, return_metrics=False):
         """
         Run filtered evaluation on a test dataset one user at a time. Similar to test_dataset_task_filtered_batch,
         but processes users individually rather than in batches.
@@ -380,7 +501,13 @@ class SingleRunner:
             testloader: DataLoader containing test data with individual user histories and ground truth items.
                        Must have batch_size=1.
         """
-        logging.info(f'testing filtered {testloader.dataset.dataset} dataset on {testloader.dataset.task} task')
+        dataset_name = testloader.dataset.dataset
+        task_name = testloader.dataset.task
+        logging.info(f'testing filtered {dataset_name} dataset on {task_name} task')
+        
+        # Start timing
+        start_time = time.time()
+        
         test_total = 0
         with torch.no_grad():
             candidates = set(testloader.dataset.all_items)
@@ -439,28 +566,38 @@ class SingleRunner:
             
             metrics_res /= test_total
             
+            # Calculate elapsed time
+            elapsed_time = time.time() - start_time
+            logging.info(f'Evaluation time for {dataset_name}/{task_name}: {elapsed_time:.2f} seconds')
+            
+            # Log timing to wandb
+            if self.args.use_wandb:
+                wandb.log({
+                    f"{dataset_name}/{task_name}/eval_time": elapsed_time
+                })
             
             for i in range(len(self.metrics)):
                 logging.info(f'{self.metrics[i]}: {metrics_res[i]}')
 
-    def test_dataset_task(self, testloader):
+            if return_metrics:
+                return metrics_res
+    
+    def test_dataset_task(self, testloader, return_metrics=False):
         """
-        Run standard (unfiltered) evaluation on a test dataset. This is the basic evaluation method that:
-        1. Takes test data in batches
-        2. Generates predictions from the full set of possible items
-        3. Evaluates metrics like Hit Rate and NDCG on the predictions
-        
-        Unlike the filtered variants, this method does not exclude items from users' training histories
-        when making predictions. This makes it faster but potentially less realistic since it may recommend
-        items the user has already interacted with.
-        
-        Args:
-            testloader: DataLoader containing test data with ground truth items to predict
+        Run standard (unfiltered) evaluation on a test dataset.
         """
         logging.info("="*50)
-        logging.info(f'EVALUATION: {testloader.dataset.dataset} dataset on {testloader.dataset.task} task')
+        dataset_name = testloader.dataset.dataset
+        task_name = testloader.dataset.task
+        logging.info(f'EVALUATION: {dataset_name} dataset on {task_name} task')
+        
+        # Start timing
+        total_start = time.time()
+        
         test_total = 0
         with torch.no_grad():
+            # Time trie construction
+            trie_start = time.time()
             candidates = testloader.dataset.all_items
             candidate_trie = gt.Trie(
                 [
@@ -469,15 +606,25 @@ class SingleRunner:
                 ]
             )
             prefix_allowed_tokens = gt.prefix_allowed_tokens_fn(candidate_trie)
+            trie_time = time.time() - trie_start
+            logging.info(f"Trie construction took: {trie_time:.2f} seconds")
             
             metrics_res = np.array([0.0] * len(self.metrics))
-            for batch in tqdm(testloader):
+            
+            # Track cumulative times
+            total_generate_time = 0
+            total_decode_time = 0
+            total_metric_time = 0
+            
+            for batch_idx, batch in enumerate(tqdm(testloader)):
                 input_ids = batch[0].to(self.device)
                 attn = batch[1].to(self.device)
                 whole_input_ids = batch[2].to(self.device)
                 output_ids = batch[3].to(self.device)
                 output_attention = batch[4].to(self.device)
                 
+                # Time model generation
+                generate_start = time.time()
                 prediction = self.model.generate(
                         input_ids=input_ids,
                         attention_mask=attn,
@@ -489,29 +636,71 @@ class SingleRunner:
                         output_scores=True,
                         return_dict_in_generate=True,
                     )
+                generate_time = time.time() - generate_start
+                total_generate_time += generate_time
                 
                 prediction_ids = prediction["sequences"]
                 prediction_scores = prediction["sequences_scores"]
                 
+                # Time tokenizer decoding
+                decode_start = time.time()
                 gold_sents = self.tokenizer.batch_decode(
                     output_ids, skip_special_tokens=True
                 )
                 generated_sents = self.tokenizer.batch_decode(
                     prediction_ids, skip_special_tokens=True
                 )
+                decode_time = time.time() - decode_start
+                total_decode_time += decode_time
                 
-                # print(generated_sents)
-                # exit()
+                # Time metric calculation
+                metric_start = time.time()
                 rel_results = evaluate.rel_results(generated_sents, gold_sents, prediction_scores, self.generate_num)
-                
                 test_total += len(rel_results)
-                
                 metrics_res += evaluate.get_metrics_results(rel_results, self.metrics)
+                metric_time = time.time() - metric_start
+                total_metric_time += metric_time
                 
+                # Log times for first few batches
+                if batch_idx < 3:
+                    logging.info(f"\nBatch {batch_idx} timing:")
+                    logging.info(f"  Generation time: {generate_time:.2f}s")
+                    logging.info(f"  Decode time: {decode_time:.2f}s")
+                    logging.info(f"  Metric calc time: {metric_time:.2f}s")
+                    logging.info(f"  Batch size: {len(input_ids)}")
+            
+            total_time = time.time() - total_start
+            
+            # Log overall timing breakdown
+            logging.info("\nTiming Summary:")
+            logging.info(f"Total evaluation time: {total_time:.2f}s")
+            logging.info(f"Trie construction: {trie_time:.2f}s ({100*trie_time/total_time:.1f}%)")
+            logging.info(f"Total generation time: {total_generate_time:.2f}s ({100*total_generate_time/total_time:.1f}%)")
+            logging.info(f"Total decode time: {total_decode_time:.2f}s ({100*total_decode_time/total_time:.1f}%)")
+            logging.info(f"Total metric calc time: {total_metric_time:.2f}s ({100*total_metric_time/total_time:.1f}%)")
+            logging.info(f"Average time per batch:")
+            logging.info(f"  Generation: {total_generate_time/len(testloader):.2f}s")
+            logging.info(f"  Decode: {total_decode_time/len(testloader):.2f}s")
+            logging.info(f"  Metric calc: {total_metric_time/len(testloader):.2f}s")
+            
             metrics_res = torch.tensor(metrics_res).to(self.device)
             test_total = torch.tensor(test_total).to(self.device)
             
             metrics_res /= test_total
             
+            # Calculate elapsed time
+            elapsed_time = time.time() - total_start
+            logging.info(f'Evaluation time for {dataset_name}/{task_name}: {elapsed_time:.2f} seconds')
+            
+            # Log timing to wandb
+            if self.args.use_wandb:
+                wandb.log({
+                    f"{dataset_name}/{task_name}/eval_time": elapsed_time
+                })
+            
+            # Log results
             for i in range(len(self.metrics)):
                 logging.info(f'{self.metrics[i]}: {metrics_res[i]}')
+                
+            if return_metrics:
+                return metrics_res
