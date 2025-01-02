@@ -2,3 +2,8 @@
 *.wandb
 wandb/
 *.pyc
+model/
+__pycache__/
+*.pyc
+*.py[cod]
+*$py.class
