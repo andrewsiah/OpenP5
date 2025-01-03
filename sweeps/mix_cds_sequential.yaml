@@ -1,0 +1,39 @@
+program: main.py
+method: grid
+metric:
+  name: eval/avg_metrics  # adjust based on your actual metric name
+  goal: maximize
+
+parameters:
+  # Fixed parameters
+  use_wandb:
+    value: 1
+  wandb_project:
+    value: "OpenP5"
+  distributed:
+    value: 1
+  tasks:
+    value: "sequential,straightforward"
+  item_indexing:
+    value: "sequential"
+  prompt_file:
+    value: "/user/as6154/OpenP5/prompt.txt"
+  
+  # Parameters to sweep over
+  datasets:
+    values: ["Beauty"]  # example
+  eval_datasets:
+    values: ["Beauty,Clothing,Electronics,CDs,Movies"]  # e.g. ["Beauty,Clothing"] NO SPACES
+  batch_size:
+    values: [128]
+  lr:
+    values: [1e-3]
+  max_his:
+    values: [20]
+  
+
+  # Hardware configuration
+  gpu:
+    value: "7,0"
+  master_port:
+    value: 2002

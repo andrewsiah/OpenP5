@@ -47,6 +47,9 @@ TODOS:
    - Implement Dirichlet sampling
    - Create data sampling based on weights
    - Save mixture configurations for reproducibility
+   
+
+DONE!
 
 2. Index Offsetter
 
