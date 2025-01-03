@@ -7,6 +7,7 @@ from collections import defaultdict
 import os
 from scipy.sparse import csr_matrix
 import pdb
+from utils.dataset_index_offset import get_dataset_offset
 
 def sequential_indexing(data_path, dataset, user_sequence_dict, order):
     """
@@ -29,7 +30,7 @@ def sequential_indexing(data_path, dataset, user_sequence_dict, order):
         user_info = utils.ReadLineFromFile(user_index_file)
         user_map = get_dict_from_lines(user_info)
     else:
-        user_map = generate_user_map(user_sequence_dict)
+        user_map = generate_user_map(user_sequence_dict, dataset)
         utils.WriteDictToFile(user_index_file, user_map)
         
         
@@ -39,6 +40,7 @@ def sequential_indexing(data_path, dataset, user_sequence_dict, order):
         item_map = get_dict_from_lines(item_info)
     else:
         item_map = dict()
+        offset = get_dataset_offset(dataset)
         if order == 'original':
             user_list = user_sequence_dict.keys()
         elif order == 'short2long':
@@ -50,12 +52,12 @@ def sequential_indexing(data_path, dataset, user_sequence_dict, order):
             items = user_sequence_dict[user][:-2]
             for item in items:
                 if item not in item_map:
-                    item_map[item] = str(len(item_map) + 1001)
+                    item_map[item] = str(len(item_map) + 1001 + offset)
         for user in user_list:
             items = user_sequence_dict[user][-2:]
             for item in items:
                 if item not in item_map:
-                    item_map[item] = str(len(item_map) + 1001)
+                    item_map[item] = str(len(item_map) + 1001 + offset)
         utils.WriteDictToFile(item_index_file, item_map)
         
     reindex_user_sequence_dict = reindex(user_sequence_dict, user_map, item_map)
@@ -85,7 +87,7 @@ def random_indexing(data_path, dataset, user_sequence_dict):
         user_info = utils.ReadLineFromFile(user_index_file)
         user_map = get_dict_from_lines(user_info)
     else:
-        user_map = generate_user_map(user_sequence_dict)
+        user_map = generate_user_map(user_sequence_dict, dataset)
         utils.WriteDictToFile(user_index_file, user_map)
         
         
@@ -95,6 +97,7 @@ def random_indexing(data_path, dataset, user_sequence_dict):
         item_map = get_dict_from_lines(item_info)
     else:
         item_map = dict()
+        offset = get_dataset_offset(dataset)
         items = set()
         for user in user_sequence_dict:
             items.update(user_sequence_dict[user])
@@ -102,7 +105,7 @@ def random_indexing(data_path, dataset, user_sequence_dict):
         random.shuffle(items)
         for item in items:
             if item not in item_map:
-                item_map[item] = str(len(item_map) + 1001)
+                item_map[item] = str(len(item_map) + 1001 + offset)
         utils.WriteDictToFile(item_index_file, item_map)
         
     reindex_user_sequence_dict = reindex(user_sequence_dict, user_map, item_map)
@@ -130,7 +133,7 @@ def collaborative_indexing(data_path, dataset, user_sequence_dict, token_size, c
         user_info = utils.ReadLineFromFile(user_index_file)
         user_map = get_dict_from_lines(user_info)
     else:
-        user_map = generate_user_map(user_sequence_dict)
+        user_map = generate_user_map(user_sequence_dict, dataset)
         utils.WriteDictToFile(user_index_file, user_map)
         
         
@@ -298,13 +301,14 @@ def get_dict_from_lines(lines):
         
         
         
-def generate_user_map(user_sequence_dict):
+def generate_user_map(user_sequence_dict, dataset):
     """
     generate user map based on user sequence dict.
     """
     user_map = dict()
+    offset = get_dataset_offset(dataset)
     for user in user_sequence_dict.keys():
-        user_map[user] = str(len(user_map) + 1)
+        user_map[user] = str(len(user_map) + 1 + offset)
     return user_map
 
 
